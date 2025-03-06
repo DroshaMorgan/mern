@@ -5,7 +5,9 @@ import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 
 import {registerValidator} from './validations/auth.js';
+
 import UserModel from './models/User.js';
+import checkAuth from './utils/checkAuth.js';
 
 
 mongoose.connect('mongodb+srv://admin:123@cluster0.k7kmp.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0')
@@ -101,6 +103,27 @@ app.post('/auth/register', registerValidator, async (req, res) => {
         console.log(err);
         res.status(500).json({
             message: 'Не удалось зарегестрироваться!'
+        });
+    }
+});
+
+app.get('/auth/me', checkAuth, async (req, res) => {
+    try {
+        console.log(req)
+        const user = await UserModel.findById(req.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Пользователь не найден',
+            })
+        }
+        
+        const {passwordHash, ...userData} = user._doc;
+
+        res.json(userData);
+    } catch (err) {
+        res.status(500).json({
+            message: 'Нет доступа!'
         });
     }
 });
