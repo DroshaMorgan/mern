@@ -1,6 +1,10 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import {registerValidator} from './validations/auth';
+import { validationResult } from 'express-validator';
+
+
 
 mongoose.connect('mongodb+srv://admin:123@cluster0.k7kmp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 .then(() => console.log('DB ok'))
@@ -14,19 +18,16 @@ app.get('/', (req, res) => {
     res.send('WebApp is working!')
 })
 
-app.post('/auth/register', (req, res) => {
-    console.log(req.body)
-
-    const token = jwt.sign({
-        email: req.body.email,
-        fullname: 'Den Claus',
-    }, 'secret123');
+app.post('/auth/register', registerValidator, (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json(errors.array())
+    }
 
     res.json({
         success: true,
-        token,
-    })
-})
+    });
+});
 
 app.listen(4444, (err) => {
     if (err) {
