@@ -20,6 +20,48 @@ app.get('/', (req, res) => {
     res.send('WebApp is working!')
 })
 
+app.post('/auth/login', async (req, res) => {
+    try {
+        const user = await UserModel.findOne({
+            email: req.body.email
+        });
+
+        // Проверка, что пользователь существует
+        if (!user) {
+            return res.status(400).json({
+                message: 'Пользователь не найден!',
+            })
+        }
+
+        const isValidPass = await bcrypt.compare(req.body.password, user._doc.passwordHash);
+
+        // Проверка на верный пароль
+        if (!isValidPass) {
+            return res.status(400).json({
+                message: 'Неверный логин или пароль!',
+            })        
+        }
+
+        const token = jwt.sign({
+            _id: user._id,
+        }, 
+        'secret123',
+        {
+           expiresIn: '30d',
+        }
+        )
+
+        const {passwordHash, ...userData} = user._doc;
+
+        res.json({...userData, token});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            message: 'Не удалось авторизоваться!'
+        });
+    }
+});
+
 app.post('/auth/register', registerValidator, async (req, res) => {
     try {
         // Валидация запроса
@@ -52,7 +94,7 @@ app.post('/auth/register', registerValidator, async (req, res) => {
             }
         )
     
-    const {passwordHash, ...userData} = user._doc;
+        const {passwordHash, ...userData} = user._doc;
 
         res.json({...userData, token});
     } catch (err) {
