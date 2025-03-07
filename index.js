@@ -18,7 +18,7 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
+app.get('/', (res) => {
     res.send('WebApp is working!')
 })
 
@@ -109,7 +109,6 @@ app.post('/auth/register', registerValidator, async (req, res) => {
 
 app.get('/auth/me', checkAuth, async (req, res) => {
     try {
-        console.log(req)
         const user = await UserModel.findById(req.userId);
 
         if (!user) {
