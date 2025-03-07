@@ -117,6 +117,7 @@ app.get('/auth/me', checkAuth, async (req, res) => {
             })
         }
         
+        
         const {passwordHash, ...userData} = user._doc;
 
         res.json(userData);
